@@ -1,0 +1,43 @@
+---
+- hosts: Routers
+
+  gather_facts: false
+  connection: local
+
+  tasks:
+    
+   - name: Get vars for SSH acces
+     include_vars: /etc/ansible/secrets.yaml
+
+   - name: define provider
+     set_fact:
+       connection:
+         authorize: yes
+         host: "{{ ansible_host }}"
+         username: "{{ creds['username'] }}"
+         password: "{{ creds['password'] }}"
+
+   - name: Configure OSFP 100 and put all interfaces into Area 0
+     ios_config:
+       lines:
+         - network 10.0.0.0 0.0.0.255 area 0
+       parents: router ospf 100
+       host: "{{ ansible_host }}"
+       provider: "{{ connection }}"
+
+   - name: SAVE CONFIG
+     ios_command:
+       commands:
+         - write memory
+       host: "{{ ansible_host }}"
+       provider: "{{ connection }}"
+
+   - name: Verify OSPF interface is Active
+     ios_command:
+       commands:
+         - sh run | sec router ospf
+       host: "{{ ansible_host }}"
+       provider: "{{ connection }}"
+
+       waitfor:
+         - result[0] contains 'router ospf 100'
