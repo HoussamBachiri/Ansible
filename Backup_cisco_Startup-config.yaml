@@ -1,0 +1,32 @@
+---
+- hosts: Routers
+  gather_facts: False
+  connection: local
+  vars_files:
+    - /etc/ansible/secrets.yaml
+
+  vars:
+    connection:
+      host: "{{ ansible_host }}"
+      username: "{{ creds['username'] }}"
+      password: "{{ creds['password'] }}"
+      auth_pass: "{{ creds['auth_pass'] }}"
+      authorize: yes
+
+  tasks:
+
+   - name: ____Show startup-config____
+     ios_command:
+       commands:
+         - show startup-config
+       provider: "{{ connection }}"
+     register: config
+
+   - name: new variable with current date time
+     set_fact: temp="{{lookup('pipe','date \"+%Y-%m-%d_%H:%M\"')}}"
+
+
+   - name: ____ Save output to /etc/ansible/backups/Startup-config ____
+     copy:
+       content: "{{ config.stdout[0] }}"
+       dest: "/etc/ansible/backups/Startup-config/{{ inventory_hostname }}_Startup-config_{{temp}}.txt"
