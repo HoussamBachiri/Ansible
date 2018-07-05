@@ -1,0 +1,33 @@
+
+---
+- hosts: Routers
+
+  gather_facts: false
+  connection: local
+
+  tasks:
+  - name: Obtain vars for ssh acces
+    include_vars: /etc/ansible/secrets.yaml
+
+  - name: Define provider
+    set_fact:
+      connection:
+        authorize: yes
+        host: "{{ ansible_host }}"
+        username: "{{ creds['username'] }}"
+        password: "{{ creds['password'] }}"
+
+  - name: configure console logging level and facility
+    ios_logging:
+      dest: host
+      name: 192.168.146.131
+      state: present
+      host: "{{ ansible_host }}"
+      provider: "{{ connection }}"
+
+  - name: SAVE CONFIG
+    ios_command:
+      commands:
+        - write memory
+      host: "{{ ansible_host }}"
+      provider: "{{ connection }}"
