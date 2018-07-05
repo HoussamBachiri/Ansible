@@ -35,18 +35,18 @@
 #       state: absent
 #       host: "{{ ansible_host }}"
 #       username: ansible
-#       password: Metanext01
+#       password: *******
 #   - name: remove the exec banner
 #     ios_banner:
 #       banner: exec
 #       state: absent
 #       host: "{{ ansible_host }}"
 #       username: ansible
-#       password: Metanext01
+#       password: *******
 #   - name: remove the incoming banner
 #     ios_banner:
 #       banner: incoming
 #       state: absent
 #       host: "{{ ansible_host }}"
 #       username: ansible
-#       password: Metanext01
+#       password: *******
