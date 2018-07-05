@@ -1,0 +1,34 @@
+---
+- hosts: Routers
+  gather_facts: false
+  connection: local
+
+  tasks:
+
+    - name: Get vars for SSH acces
+      include_vars: /etc/ansible/secrets.yaml
+
+    - name: define provider
+      set_fact:
+        connection:
+          authorize: yes
+          host: "{{ ansible_host }}"
+          username: "{{ creds['username'] }}"
+          password: "{{ creds['password'] }}"
+
+    - name: Create a new user with 15 privilege
+      ios_user:
+        name: salt
+        configured_password: Metanext01
+        privilege: 15
+        state: present
+        host: "{{ ansible_host }}"
+        provider: "{{ connection }}"
+
+
+    - name: SAVE CONFIG
+      ios_config:
+        authorize: yes
+        save: yes
+        host: "{{ ansible_host }}"
+        provider: "{{ connection }}"
