@@ -7,7 +7,7 @@
     cli:
       host: "{{ ansible_host }}"
       username: ansible
-      password: Metanext01
+      password: *******
       authorize: yes
       auth_pass: admin
 
