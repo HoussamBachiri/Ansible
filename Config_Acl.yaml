@@ -1,0 +1,27 @@
+---
+- hosts: Routers
+
+  gather_facts: false
+  connection: local 
+
+  tasks:
+   - name: Configure ACL on Cisco Routers 
+     ios_config:
+       authorize: yes
+       lines:
+         - access-list 100 permit 172.16.1.100
+         - access-list 101 permit 172.15.1.1  
+
+   - name: Verify ACL is present 
+     ios_command: 
+       commands:
+         - sh access-lis
+       waitfor: 
+         - result[0] contains 'permit 172.16.1.100'
+
+   - name: SAVE CONFIG 
+     ios_config: 
+       authorize: yes
+       save: yes
+
+
