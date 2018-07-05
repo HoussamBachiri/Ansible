@@ -1,0 +1,48 @@
+---
+- hosts: Routers
+  gather_facts: false
+  connection: local
+
+  tasks:
+   - name: obtain vars for ssh acces
+     include_vars: /etc/ansible/secrets.yaml
+
+   - name: define provider
+     set_fact:
+       connection:
+         authorize: yes
+         host: "{{ ansible_host }}"
+         username: "{{ creds['username'] }}"
+         password: "{{ creds['password'] }}"
+
+   - name: configure static routes
+     ios_static_route:
+       prefix: 192.168.2.0
+       mask: 255.255.255.0
+       next_hop: 10.0.0.1
+       host: "{{ ansible_host }}"
+       provider: "{{ connection }}"
+
+   - name: Delete static routes
+     ios_static_route:
+       aggregate:
+         - { prefix: 172.16.32.0, mask: 255.255.255.0, next_hop: 10.10.10.1 }
+         - { prefix: 172.16.34.0, mask: 255.255.255.0, next_hop: 10.10.10.1 }
+       host: "{{ ansible_host }}"
+       state: absent
+       provider: "{{ connection }}"
+
+   - name: Add static route aggregates
+     ios_static_route:
+       aggregate:
+         - { prefix: 172.16.42.0, mask: 255.255.255.0, next_hop: 10.0.0.8 }
+         - { prefix: 172.16.43.0, mask: 255.255.255.0, next_hop: 10.0.0.8 }
+       host: "{{ ansible_host }}"
+       provider: "{{ connection }}"
+
+
+   - name: SAVE CONFIG
+     ios_command:
+       commands:
+         - write memory
+       host: "{{ ansible_host }}"
