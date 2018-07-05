@@ -1,0 +1,69 @@
+---
+- hosts: Firewalls
+  gather_facts: false
+  connection: local
+  vars_files:
+    - /etc/ansible/secrets.yaml
+
+  vars:
+    cli:
+      host: "{{ ansible_host }}"
+      username: "{{ creds['username'] }}"
+      password: "{{ creds['password'] }}"
+      auth_pass: "{{ creds['auth_pass'] }}"
+      authorize: yes
+
+  tasks:
+   - name: Configure Object-group & Network-objects
+     asa_config:
+       lines:
+         - network-object host 10.80.30.18
+         - network-object host 10.80.30.19
+         - network-object host 10.80.30.100
+       parents: ['object-group network OG-MONITORED-SERVERS']
+       provider: "{{ cli }}"
+
+   - name: Configure Object-group SRV-DATABASE-SERVERS...
+     asa_config:
+       lines:
+         - network-object host 172.19.30.18
+         - network-object host 172.18.30.19
+         - network-object host 172.16.30.100
+       parents: ['object-group network SRV-DATABSES-SERVERS-PERMIT']
+       provider: "{{ cli }}"
+
+   - name: Configure access-list ACL-ANSIBLE
+     asa_acl:
+       lines:
+         - access-list ACL-ANSIBLE extended permit tcp any any eq 82
+         - access-list ACL-ANSIBLE extended permit tcp any any eq www
+         - access-list ACL-ANSIBLE extended permit tcp any any eq 97
+         - access-list ACL-ANSIBLE extended permit tcp any any eq 98
+         - access-list ACL-ANSIBLE extended permit tcp any any eq 99
+       before: clear configure access-list ACL-ANSIBLE
+       match: strict
+       replace: block
+       provider: "{{ cli }}"
+
+   - name: Configure access-list ACL-OUTSIDE.
+     asa_acl:
+       lines:
+         - access-list ACL-OUTSIDE extended permit tcp any any eq www
+         - access-list ACL-OUTSIDE extended permit tcp any any eq https
+       provider: "{{ cli }}"
+   
+   - name: Configure Message length maximum
+     asa_config:
+       lines:
+         - message-length maximum client auto
+         - message-length maximum 512
+       match: line
+       parents: ['policy-map type inspect dns PM-DNS', 'parameters']
+       provider: "{{ cli }}"
+
+
+   - name: Save running to startup when modified
+     asa_config:
+       save: "yes"
+       provider: "{{ cli }}"
+     register: result   
