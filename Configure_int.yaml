@@ -1,0 +1,47 @@
+---
+- hosts: Routers
+
+  gather_facts: false
+  connection: local
+
+  tasks:
+
+   - name: Get vars for SSH acces
+     include_vars: /etc/ansible/secrets.yaml
+
+   - name: define provider
+     set_fact:
+       connection:
+         authorize: yes
+         host: "{{ ansible_host }}"
+         username: "{{ creds['username'] }}"
+         password: "{{ creds['password'] }}"
+
+   - name: configure Gig2 settings
+     ios_config:
+       lines:
+         - description test interface
+         - ip address 10.0.0.1 255.255.255.0 
+         - shut
+       parents: interface GigabitEthernet2
+
+       host: "{{ ansible_host }}"
+       provider: "{{ connection }}"
+
+
+   - name: configure NTP Server
+     ios_config:
+       lines:
+         - ntp server 125.56.55.53  
+
+       host: "{{ ansible_host }}"
+       provider: "{{ connection }}"
+
+
+   - name: SAVE CONFIG 
+     ios_command:
+       commands:
+         - write memory
+       host: "{{ ansible_host }}"
+       provider: "{{ connection }}"
+
