@@ -1,0 +1,26 @@
+---
+- hosts: Arista
+  connection: local
+
+  tasks:
+
+   - name: obtain vars for SSH Acces
+     include_vars: /etc/ansible/playbooks/secrets.yaml
+
+   - name: define provider
+     set_fact:
+       connection:
+         authorize: yes
+         host: "{{ ansible_host }}"
+         username: "{{ creds['username'] }}"
+         password: "{{ creds['password'] }}"
+
+   - name: ____Show run____
+     ios_command:
+       commands:
+         - show run
+       provider: "{{ connection }}"
+     register: config
+
+   - name: new variable with current date time
+     set_fact: temp="{{lookup('pipe','date \"+%Y-%m-%d_%H:%M\"')}}"
