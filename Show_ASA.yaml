@@ -1,0 +1,24 @@
+---
+- hosts: Firewalls
+  gather_facts: false
+  connection: local
+
+  vars:
+    cli:
+      host: "{{ ansible_host }}"
+      username: ansible
+      password: Metanext01
+      authorize: yes
+      auth_pass: admin
+
+  tasks:
+   - asa_command:
+       commands:
+         - show version
+       provider: "{{ cli }}"
+
+   - asa_command:
+       commands:
+         - show asp drop
+         - show memory
+       provider: "{{ cli }}"
