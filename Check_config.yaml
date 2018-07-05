@@ -1,0 +1,24 @@
+---
+- hosts: Routers
+
+  gather_facts: false
+  connection: local
+
+  tasks:
+
+   # Collect all facts from the device
+   - ios_facts:
+       gather_subset: all
+       host: "{{ ansible_host }}"
+       username: admin
+       password: *******
+
+   # Collect only the config and default facts
+   - ios_facts:
+       gather_subset:
+         - config
+       host: "{{ ansible_host }}"
+       username: admin
+       password: *******
+
+
